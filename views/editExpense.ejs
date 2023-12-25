@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add new expense</title>
+</head>
+<body>
+    <a href="http://localhost:3000/expenses/<%= foundExpense._id %>">Back</a>
+    <h1>Edit expense</h1>
+    <!-- <h3>Current details</h3>
+    <p><strong><%= foundExpense.value %></strong> on <%= foundExpense.expenseDate.toLocaleString() %></p>
+    <hr> -->
+    <form action="http://localhost:3000/expenses/<%= foundExpense._id %>?_method=PATCH" method="POST">
+        <label for="value">Expense Value</label>
+        <input type="text" id="value" name="value" value="<%= foundExpense.value %>">
+        <br>
+        <label for="expenseDate">Spent on (date)</label>
+        <input type="date" id="expenseDate" name="expenseDate">
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        const submitBtn = document.querySelector("button")
+        const valueField = document.querySelector("#value")
+        valueField.addEventListener("change", () => {
+            if (!valueField) {
+                submitBtn.disabled = true
+            }
+        })
+    </script>
+</body>
+</html>

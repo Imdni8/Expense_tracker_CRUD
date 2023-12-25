@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add new expense</title>
+</head>
+<body>
+    <h1>Add new expense</h1>
+    <a href="http://localhost:3000/expenses">Back</a>
+    <hr>
+    <form action="http://localhost:3000/addexpense" method="POST">
+        <label for="value">Expense Value</label>
+        <input type="text" id="value" name="value">
+        <br>
+        <label for="expenseDate">Spent on (date)</label>
+        <input type="date" id="expenseDate" name="expenseDate">
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

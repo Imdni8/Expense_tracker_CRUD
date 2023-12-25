@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Expenses</title>
+</head>
+<body>
+    <h1>Your Expense Manager</h1>
+    <a href="http://localhost:3000/addexpense">Add new expense</a>
+    <hr>
+    <h2>All expenses</h2>
+    <% if (expenses) { %>
+        <ul>
+            <% for (expense of expenses) { %>
+                <li><strong><%= expense.value %></strong> - on <%= expense.expenseDate.toLocaleString() %> | <a href="http://localhost:3000/expenses/<%= expense._id %>">Details</a></li>
+            <% } %>
+        </ul>
+    <% } else { %>
+        <p>No expenses recorded so far</p>
+    <% } %>
+</body>
+</html>
