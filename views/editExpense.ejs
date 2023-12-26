@@ -6,12 +6,10 @@
     <title>Add new expense</title>
 </head>
 <body>
-    <a href="http://localhost:3000/expenses/<%= foundExpense._id %>">Back</a>
+    <a href="<%= baseURL %>/expenses/<%= foundExpense._id %>">Back to expense details</a>
     <h1>Edit expense</h1>
-    <!-- <h3>Current details</h3>
-    <p><strong><%= foundExpense.value %></strong> on <%= foundExpense.expenseDate.toLocaleString() %></p>
-    <hr> -->
-    <form action="http://localhost:3000/expenses/<%= foundExpense._id %>?_method=PATCH" method="POST">
+    
+    <form action="<%= baseURL %>/expenses/<%= foundExpense._id %>?_method=PATCH" method="POST">
         <label for="value">Expense Value</label>
         <input type="text" id="value" name="value" value="<%= foundExpense.value %>">
         <br>
@@ -26,6 +24,7 @@
         const valueField = document.querySelector("#value")
         valueField.addEventListener("change", () => {
             if (!valueField) {
+
                 submitBtn.disabled = true
             }
         })

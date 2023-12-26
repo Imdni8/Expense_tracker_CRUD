@@ -6,16 +6,16 @@
     <title>Expense details</title>
 </head>
 <body>
-    <a href="http://localhost:3000/expenses">Back</a>
+    <a href="<%= baseURL %>/expenses">Back</a>
     <h1>Expense details</h1>
     <h2>Value: <%= foundExpense.value %></h2>
     <h3>Spent on: <%= foundExpense.expenseDate.toLocaleString() %></h3>
     <hr>
-    <form method="GET" action="http://localhost:3000/expenses/<%= foundExpense._id %>/edit">
+    <form method="GET" action="<%= baseURL %>/expenses/<%= foundExpense._id %>/edit">
         <button type="submit">Edit</button>
     </form>
     <br>
-    <form method="POST" action="http://localhost:3000/expenses/<%= foundExpense._id %>?_method=DELETE">
+    <form method="POST" action="<%= baseURL %>/expenses/<%= foundExpense._id %>?_method=DELETE">
         <button type="submit">Delete</button>
     </form>
 </body>
