@@ -34,9 +34,12 @@ mongoose.connect(dburl)
 //importing mongoose model
 const Expense = require("./Mongoose_models/Expense")
 
+//setting up port
+const port = process.env.PORT || 3000
+
 //opening port
-app.listen(3000, () => {
-    console.log("Port for Mongoose + Express CRUD app is live")
+app.listen(port, () => {
+    console.log("MSW_Expense CRUD app is live at " + port)
 })
 
 //------// Routes //------//
