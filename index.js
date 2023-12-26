@@ -3,6 +3,7 @@ const express = require("express")
 const mongoose = require("mongoose")
 const methodOverride = require("method-override") //for executing HTTP functions other than GET and POST
 const path = require("path") //for setting views directory only
+require("dotenv").config()
 
 const app = express()
 
@@ -17,9 +18,6 @@ app.use(express.urlencoded({ extended: true }))
 
 //method overriding using string query
 app.use(methodOverride('_method'))
-
-//requiring env
-require("dotenv").config()
 
 //mongo atlas link
 const dburl = process.env.db_URL
