@@ -18,8 +18,15 @@ app.use(express.urlencoded({ extended: true }))
 //method overriding using string query
 app.use(methodOverride('_method'))
 
+//requiring env
+require("dotenv").config()
+
+//mongo atlas link
+const dburl = process.env.db_URL
+//"mongodb://localhost/expenseApp"
+
 //connecting mongoose
-mongoose.connect("mongodb://localhost/expenseApp")
+mongoose.connect(dburl)
 .then(() => {
 	console.log("Connection to expense app open")
 }).catch((err) => {
