@@ -37,35 +37,31 @@ const Expense = require("./Mongoose_models/Expense")
 //setting up port
 const port = process.env.PORT || 3000
 
-//checking if hosted online or on localhost
-// let base_URL = ""
-// if (port !== 3000) {
-//     base_URL = "https://msw-expense-tracker.onrender.com/"
-// }
+const baseURL = process.env.RENDER_URL || 'http://localhost:3000'; // Use localhost for local dev
+app.locals.baseURL = baseURL // setting baseURL as a local variable for this project
+
 
 //opening port
 app.listen(port, () => {
     console.log("MSW_Expense CRUD app is live at " + port)
 })
 
-console.log(process.env.base_URL)
-
 //------// Routes //------//
 
 //home
-app.get(`https://msw-expense-tracker.onrender.com/expenses`, async (req, res) => {
+app.get("/expenses", async (req, res) => {
     const expenses = await Expense.find()
     // console.log(expenses)
     res.render("expenses.ejs", { expenses })
 })
 
 //add new expense form
-app.get("https://msw-expense-tracker.onrender.com/addexpense", (req, res) => {
+app.get("/addexpense", (req, res) => {
     res.render("newexpense.ejs")
 })
 
 //Create new expense in DB based on form input
-app.post("https://msw-expense-tracker.onrender.com/addexpense", (req, res) => {
+app.post("/addexpense", (req, res) => {
     // console.log(req.body)
     const { value, expenseDate } = req.body
     if (expenseDate) {
@@ -80,21 +76,21 @@ app.post("https://msw-expense-tracker.onrender.com/addexpense", (req, res) => {
 })
 
 //expense details page
-app.get("https://msw-expense-tracker.onrender.com/expenses/:id", async (req, res) => {
+app.get("/expenses/:id", async (req, res) => {
     const { id } = req.params
     const foundExpense = await Expense.findById(id)
     res.render("expenseDetails.ejs", { foundExpense })
 })
 
 //update an expense - form
-app.get("https://msw-expense-tracker.onrender.com/expenses/:id/edit", async (req, res) => {
+app.get("/expenses/:id/edit", async (req, res) => {
     const { id } = req.params
     const foundExpense = await Expense.findById(id)
     res.render("editExpense.ejs", { foundExpense })
 })
 
 //update in DB
-app.patch("https://msw-expense-tracker.onrender.com/expenses/:id", async (req, res) => {
+app.patch("/expenses/:id", async (req, res) => {
     const { id } = req.params
     const { value, expenseDate } = req.body
     if (value && expenseDate) {
@@ -108,7 +104,7 @@ app.patch("https://msw-expense-tracker.onrender.com/expenses/:id", async (req, r
 })
 
 //delete an expense
-app.delete("https://msw-expense-tracker.onrender.com/expenses/:id", async (req, res) => {
+app.delete("/expenses/:id", async (req, res) => {
     const { id } = req.params
     await Expense.findByIdAndDelete(id)
     res.redirect("/expenses")

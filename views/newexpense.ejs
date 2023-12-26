@@ -7,9 +7,9 @@
 </head>
 <body>
     <h1>Add new expense</h1>
-    <a href="http://localhost:3000/expenses">Back</a>
+    <a href="<%= baseURL %>/expenses">Back</a>
     <hr>
-    <form action="http://localhost:3000/addexpense" method="POST">
+    <form action="<%= baseURL %>/addexpense" method="POST">
         <label for="value">Expense Value</label>
         <input type="text" id="value" name="value">
         <br>
