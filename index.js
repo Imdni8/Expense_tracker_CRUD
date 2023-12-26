@@ -72,7 +72,7 @@ app.post("/addexpense", (req, res) => {
         const newExpense = Expense({ value: value, expenseDate: todaysDate })
         newExpense.save()
     }
-    res.redirect("/expenses")
+    res.redirect(`${baseURL}/expenses`)
 })
 
 //expense details page
