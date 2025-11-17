@@ -9,11 +9,8 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Chart.js CDN - Load before Alpine.js -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
-
-    <!-- Chart.js Treemap Plugin - IIFE build with auto-registration -->
-    <script src="https://unpkg.com/chartjs-chart-treemap@2.3.1/dist/chartjs-chart-treemap.js"></script>
 
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -128,14 +125,6 @@
                 </div>
             </div>
 
-            <!-- GNW Treemap Chart -->
-            <div class="mb-6">
-                <h2 class="text-lg font-bold text-gray-900 mb-3">Spending by Type (Treemap)</h2>
-                <div class="bg-white rounded-lg shadow-sm p-5">
-                    <canvas id="gnwTreemapChart" style="height: 250px;"></canvas>
-                </div>
-            </div>
-
             <!-- Category Breakdown -->
             <% if (categoryBreakdown && categoryBreakdown.length > 0) { %>
                 <div class="mb-6">
@@ -187,258 +176,61 @@
     </main>
 
     <!-- Chart.js Initialization Script -->
-    <% if (monthlyTotal > 0) { %>
+    <% if (monthlyTotal > 0 && categoryBreakdown && categoryBreakdown.length > 0) { %>
     <script>
-        console.log('=== CHART INITIALIZATION DEBUG START ===');
-        console.log('monthlyTotal:', <%= monthlyTotal %>);
-        console.log('gnwData:', <%- JSON.stringify(gnwData) %>);
-        <% if (categoryBreakdown && categoryBreakdown.length > 0) { %>
-        console.log('categoryBreakdown:', <%- JSON.stringify(categoryBreakdown) %>);
-        <% } else { %>
-        console.log('categoryBreakdown: EMPTY or NULL');
-        <% } %>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) return;
 
-        // Initialize charts immediately after DOM loads
-        (function() {
-            console.log('Chart init IIFE started');
-            console.log('document.readyState:', document.readyState);
+            const labels = <%- JSON.stringify(categoryBreakdown.map(c => c._id)) %>;
+            const data = <%- JSON.stringify(categoryBreakdown.map(c => c.total)) %>;
 
-            // Wait for Chart.js to be available
-            function initCharts() {
-                console.log('initCharts() called');
+            const colors = [
+                '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6',
+                '#EF4444', '#14B8A6', '#F97316', '#6366F1', '#84CC16',
+                '#A855F7', '#06B6D4', '#F43F5E', '#22D3EE', '#94A3B8'
+            ];
 
-                if (typeof Chart === 'undefined') {
-                    console.error('Chart.js not loaded yet, retrying in 100ms...');
-                    setTimeout(initCharts, 100);
-                    return;
-                }
-
-                console.log('✓ Chart.js loaded successfully, version:', Chart.version);
-
-                // Check if treemap plugin is available
-                console.log('Checking treemap plugin availability...');
-                console.log('TreemapController available?', typeof TreemapController !== 'undefined');
-                console.log('TreemapElement available?', typeof TreemapElement !== 'undefined');
-                console.log('window.TreemapController?', typeof window.TreemapController);
-                console.log('window.TreemapElement?', typeof window.TreemapElement);
-
-                // Check what's available in window object related to treemap
-                const treemapKeys = Object.keys(window).filter(key => key.toLowerCase().includes('treemap'));
-                console.log('Keys in window containing "treemap":', treemapKeys);
-
-                // Try to register treemap plugin if available
-                if (typeof TreemapController !== 'undefined' && typeof TreemapElement !== 'undefined') {
-                    try {
-                        Chart.register(TreemapController, TreemapElement);
-                        console.log('✓ Treemap plugin registered manually');
-                    } catch (e) {
-                        console.log('Note: Treemap plugin registration attempted:', e.message);
-                    }
-                } else {
-                    console.warn('⚠ Treemap plugin classes not found in global scope');
-                    console.log('Attempting alternative registration methods...');
-
-                    // Try alternative export names
-                    if (window['chartjs-chart-treemap']) {
-                        console.log('Found chartjs-chart-treemap in window');
-                        try {
-                            Chart.register(window['chartjs-chart-treemap']);
-                            console.log('✓ Registered via window["chartjs-chart-treemap"]');
-                        } catch (e) {
-                            console.error('Failed to register:', e.message);
-                        }
-                    }
-                }
-
-                // GNW Treemap Chart
-                console.log('\n--- Starting GNW Treemap Creation ---');
-                const gnwCtx = document.getElementById('gnwTreemapChart');
-                console.log('gnwTreemapChart canvas element:', gnwCtx);
-
-                if (gnwCtx) {
-                    try {
-                        // Prepare treemap data in correct format
-                        const treemapData = [];
-
-                        if (<%= gnwData.Goal.total %> > 0) {
-                            treemapData.push({
-                                label: '🎯 Goal',
-                                v: <%= gnwData.Goal.total %>,
-                                color: '#8B5CF6'
-                            });
-                        }
-                        if (<%= gnwData.Need.total %> > 0) {
-                            treemapData.push({
-                                label: '✅ Need',
-                                v: <%= gnwData.Need.total %>,
-                                color: '#10B981'
-                            });
-                        }
-                        if (<%= gnwData.Want.total %> > 0) {
-                            treemapData.push({
-                                label: '❤️ Want',
-                                v: <%= gnwData.Want.total %>,
-                                color: '#EC4899'
-                            });
-                        }
-
-                        console.log('GNW treemap data:', treemapData);
-                        console.log('Creating treemap with data count:', treemapData.length);
-
-                        const treemapChart = new Chart(gnwCtx, {
-                            type: 'treemap',
-                            data: {
-                                datasets: [{
-                                    tree: treemapData,
-                                    key: 'v',
-                                    groups: ['label'],
-                                    backgroundColor: function(ctx) {
-                                        if (ctx.type !== 'data') return 'transparent';
-                                        return ctx.raw._data.color;
-                                    },
-                                    borderWidth: 2,
-                                    borderColor: '#ffffff',
-                                    spacing: 1,
-                                    labels: {
-                                        display: true,
-                                        align: 'center',
-                                        position: 'middle',
-                                        formatter: function(ctx) {
-                                            const item = ctx.raw._data;
-                                            const total = <%= monthlyTotal %>;
-                                            const percentage = ((item.v / total) * 100).toFixed(0);
-                                            return [item.label, '$' + item.v.toFixed(2), percentage + '%'];
-                                        },
-                                        color: '#ffffff',
-                                        font: {
-                                            size: 13,
-                                            weight: 'bold',
-                                            family: 'system-ui'
-                                        }
-                                    }
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        display: false
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            title: function(ctx) {
-                                                return ctx[0].raw._data.label;
-                                            },
-                                            label: function(ctx) {
-                                                const value = ctx.raw.v;
-                                                const total = <%= monthlyTotal %>;
-                                                const percentage = ((value / total) * 100).toFixed(1);
-                                                return '$' + value.toFixed(2) + ' (' + percentage + '%)';
-                                            }
-                                        }
-                                    }
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, data.length),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = <%= monthlyTotal %>;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
                                 }
                             }
-                        });
-                        console.log('✓ GNW Treemap created successfully:', treemapChart);
-                    } catch (error) {
-                        console.error('✗ Error creating GNW treemap:', error);
-                        console.error('Error stack:', error.stack);
+                        }
                     }
-                } else {
-                    console.error('✗ Canvas element gnwTreemapChart not found in DOM');
                 }
-
-                // Category Donut Chart
-                <% if (categoryBreakdown && categoryBreakdown.length > 0) { %>
-                console.log('\n--- Starting Category Donut Chart Creation ---');
-                const categoryCtx = document.getElementById('categoryChart');
-                console.log('categoryChart canvas element:', categoryCtx);
-
-                if (categoryCtx) {
-                    try {
-                        const labels = <%- JSON.stringify(categoryBreakdown.map(c => c._id)) %>;
-                        const data = <%- JSON.stringify(categoryBreakdown.map(c => c.total)) %>;
-
-                        console.log('Category labels:', labels);
-                        console.log('Category data:', data);
-
-                        const colors = [
-                            '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6',
-                            '#EF4444', '#14B8A6', '#F97316', '#6366F1', '#84CC16',
-                            '#A855F7', '#06B6D4', '#F43F5E', '#22D3EE', '#94A3B8'
-                        ];
-
-                        const donutChart = new Chart(categoryCtx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    data: data,
-                                    backgroundColor: colors.slice(0, data.length),
-                                    borderWidth: 2,
-                                    borderColor: '#ffffff'
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom',
-                                        labels: {
-                                            padding: 15,
-                                            font: {
-                                                size: 12
-                                            },
-                                            usePointStyle: true
-                                        }
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                const label = context.label || '';
-                                                const value = context.parsed || 0;
-                                                const total = <%= monthlyTotal %>;
-                                                const percentage = ((value / total) * 100).toFixed(1);
-                                                return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                        console.log('✓ Category donut chart created successfully:', donutChart);
-                    } catch (error) {
-                        console.error('✗ Error creating category chart:', error);
-                        console.error('Error stack:', error.stack);
-                    }
-                } else {
-                    console.error('✗ Canvas element categoryChart not found in DOM');
-                }
-                <% } else { %>
-                console.log('Skipping category chart - no category data available');
-                <% } %>
-
-                console.log('=== CHART INITIALIZATION DEBUG END ===\n');
-            }
-
-            // Try to initialize immediately, or wait for DOM
-            if (document.readyState === 'loading') {
-                console.log('Document still loading, waiting for DOMContentLoaded...');
-                document.addEventListener('DOMContentLoaded', initCharts);
-            } else {
-                console.log('Document already loaded, initializing charts now');
-                initCharts();
-            }
-        })();
-    </script>
-    <% } else { %>
-    <script>
-        console.log('=== CHART INITIALIZATION SKIPPED ===');
-        console.log('Reason: monthlyTotal is 0 or undefined');
-        console.log('monthlyTotal:', <%= monthlyTotal %>);
+            });
+        });
     </script>
     <% } %>
 
