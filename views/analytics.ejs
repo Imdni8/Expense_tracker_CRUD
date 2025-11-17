@@ -257,33 +257,40 @@
 
                 if (gnwCtx) {
                     try {
-                        const gnwData = [
-                            {
-                                label: '🎯 Goal',
-                                value: <%= gnwData.Goal.total %>,
-                                color: '#8B5CF6'
-                            },
-                            {
-                                label: '✅ Need',
-                                value: <%= gnwData.Need.total %>,
-                                color: '#10B981'
-                            },
-                            {
-                                label: '❤️ Want',
-                                value: <%= gnwData.Want.total %>,
-                                color: '#EC4899'
-                            }
-                        ].filter(item => item.value > 0);
+                        // Prepare treemap data in correct format
+                        const treemapData = [];
 
-                        console.log('GNW data (filtered):', gnwData);
-                        console.log('Creating treemap with data count:', gnwData.length);
+                        if (<%= gnwData.Goal.total %> > 0) {
+                            treemapData.push({
+                                label: '🎯 Goal',
+                                v: <%= gnwData.Goal.total %>,
+                                color: '#8B5CF6'
+                            });
+                        }
+                        if (<%= gnwData.Need.total %> > 0) {
+                            treemapData.push({
+                                label: '✅ Need',
+                                v: <%= gnwData.Need.total %>,
+                                color: '#10B981'
+                            });
+                        }
+                        if (<%= gnwData.Want.total %> > 0) {
+                            treemapData.push({
+                                label: '❤️ Want',
+                                v: <%= gnwData.Want.total %>,
+                                color: '#EC4899'
+                            });
+                        }
+
+                        console.log('GNW treemap data:', treemapData);
+                        console.log('Creating treemap with data count:', treemapData.length);
 
                         const treemapChart = new Chart(gnwCtx, {
                             type: 'treemap',
                             data: {
                                 datasets: [{
-                                    tree: gnwData,
-                                    key: 'value',
+                                    tree: treemapData,
+                                    key: 'v',
                                     groups: ['label'],
                                     backgroundColor: function(ctx) {
                                         if (ctx.type !== 'data') return 'transparent';
@@ -291,19 +298,22 @@
                                     },
                                     borderWidth: 2,
                                     borderColor: '#ffffff',
-                                    spacing: 2,
+                                    spacing: 1,
                                     labels: {
                                         display: true,
+                                        align: 'center',
+                                        position: 'middle',
                                         formatter: function(ctx) {
                                             const item = ctx.raw._data;
                                             const total = <%= monthlyTotal %>;
-                                            const percentage = ((item.value / total) * 100).toFixed(0);
-                                            return [item.label, '$' + item.value.toFixed(2), percentage + '%'];
+                                            const percentage = ((item.v / total) * 100).toFixed(0);
+                                            return [item.label, '$' + item.v.toFixed(2), percentage + '%'];
                                         },
                                         color: '#ffffff',
                                         font: {
-                                            size: 14,
-                                            weight: 'bold'
+                                            size: 13,
+                                            weight: 'bold',
+                                            family: 'system-ui'
                                         }
                                     }
                                 }]
@@ -317,11 +327,11 @@
                                     },
                                     tooltip: {
                                         callbacks: {
-                                            title: function(items) {
-                                                return items[0].raw._data.label;
+                                            title: function(ctx) {
+                                                return ctx[0].raw._data.label;
                                             },
-                                            label: function(item) {
-                                                const value = item.raw.v;
+                                            label: function(ctx) {
+                                                const value = ctx.raw.v;
                                                 const total = <%= monthlyTotal %>;
                                                 const percentage = ((value / total) * 100).toFixed(1);
                                                 return '$' + value.toFixed(2) + ' (' + percentage + '%)';
