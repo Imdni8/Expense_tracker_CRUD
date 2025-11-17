@@ -61,17 +61,20 @@ app.get("/addexpense", (req, res) => {
 })
 
 //Create new expense in DB based on form input
-app.post("/addexpense", (req, res) => {
-    // console.log(req.body)
-    const { value, expenseDate } = req.body
-    if (expenseDate) {
-        const newExpense = Expense(req.body)
-        newExpense.save()
-    } else {
-        const todaysDate = new Date().toLocaleDateString()
-        const newExpense = Expense({ value: value, expenseDate: todaysDate })
-        newExpense.save()
+app.post("/addexpense", async (req, res) => {
+    const { value, expenseDate, gnw, category, description } = req.body
+
+    // Prepare expense data
+    const expenseData = {
+        value: value,
+        expenseDate: expenseDate || new Date(),
+        gnw: gnw || 'Need',
+        category: category || null,
+        description: description || null
     }
+
+    const newExpense = new Expense(expenseData)
+    await newExpense.save()
     res.redirect(`${baseURL}/expenses`)
 })
 
@@ -92,15 +95,19 @@ app.get("/expenses/:id/edit", async (req, res) => {
 //update in DB
 app.patch("/expenses/:id", async (req, res) => {
     const { id } = req.params
-    const { value, expenseDate } = req.body
-    if (value && expenseDate) {
-        const editedExpense = await Expense.findByIdAndUpdate(id, req.body)
-        res.redirect("/expenses")
-    } else if (value) {
-        const todaysDate = new Date().toLocaleDateString()
-        const editedExpense = await Expense.findByIdAndUpdate(id, { value: value, expenseDate: todaysDate })
-        res.redirect("/expenses")
+    const { value, expenseDate, gnw, category, description } = req.body
+
+    // Prepare update data
+    const updateData = {
+        value: value,
+        expenseDate: expenseDate || new Date(),
+        gnw: gnw || 'Need',
+        category: category || null,
+        description: description || null
     }
+
+    await Expense.findByIdAndUpdate(id, updateData)
+    res.redirect(`${baseURL}/expenses`)
 })
 
 //delete an expense
