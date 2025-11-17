@@ -16,6 +16,7 @@
         /* Custom styles for smooth mobile experience */
         body {
             padding-bottom: 80px; /* Space for bottom nav */
+            padding-top: 0; /* No header */
         }
 
         /* Hide scrollbar but keep functionality */
@@ -31,41 +32,51 @@
 </head>
 <body class="bg-gray-50 font-sans antialiased">
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-10">
-        <div class="max-w-2xl mx-auto px-4 py-4">
-            <h1 class="text-2xl font-bold text-gray-900">Transactions</h1>
-            <p class="text-sm text-gray-500">Track your spending</p>
-        </div>
-    </header>
-
     <!-- Main Content -->
     <main class="max-w-2xl mx-auto px-4 py-6">
 
-        <!-- Month Selector -->
-        <div class="mb-6" x-data="{
-            currentMonth: <%= selectedMonth %>,
-            currentYear: <%= selectedYear %>,
-            months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-        }">
+        <!-- Month Navigation Card -->
+        <div class="mb-6">
             <div class="bg-white rounded-lg shadow-sm p-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
-                <div class="flex gap-2">
-                    <select x-model="currentMonth"
-                            @change="window.location.href = '<%= baseURL %>/expenses?month=' + currentMonth + '&year=' + currentYear"
-                            class="flex-1 px-4 py-3 text-base border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-0 bg-white">
-                        <option x-for="(month, index) in months" :key="index" :value="index" x-text="month" :selected="index === currentMonth"></option>
-                    </select>
-                    <select x-model="currentYear"
-                            @change="window.location.href = '<%= baseURL %>/expenses?month=' + currentMonth + '&year=' + currentYear"
-                            class="w-28 px-4 py-3 text-base border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-0 bg-white">
-                        <%
-                        const currentYear = new Date().getFullYear();
-                        for (let y = currentYear; y >= currentYear - 5; y--) {
-                        %>
-                            <option value="<%= y %>" <%= y === selectedYear ? 'selected' : '' %>><%= y %></option>
-                        <% } %>
-                    </select>
+                <div class="flex items-center justify-between">
+                    <!-- Previous Month Button -->
+                    <%
+                    const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+                    const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+                    %>
+                    <a href="<%= baseURL %>/expenses?month=<%= prevMonth %>&year=<%= prevYear %>"
+                       class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-lg active:scale-95">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+
+                    <!-- Current Month Display -->
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-gray-900">
+                            <%= ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][selectedMonth] %> <%= selectedYear %>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1"><%= expenses.length %> transaction<%= expenses.length !== 1 ? 's' : '' %></p>
+                    </div>
+
+                    <!-- Next Month Button -->
+                    <%
+                    const nextMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
+                    const nextYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
+                    const now = new Date();
+                    const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
+                    const isFutureMonth = selectedYear > now.getFullYear() || (selectedYear === now.getFullYear() && selectedMonth > now.getMonth());
+                    %>
+                    <% if (!isFutureMonth) { %>
+                        <a href="<%= baseURL %>/expenses?month=<%= nextMonth %>&year=<%= nextYear %>"
+                           class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-lg active:scale-95">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    <% } else { %>
+                        <div class="p-2 w-10"></div>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -73,9 +84,8 @@
         <!-- Monthly Total Card -->
         <div class="mb-6">
             <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
-                <p class="text-sm opacity-90 mb-1">Total for <%= ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][selectedMonth] %> <%= selectedYear %></p>
+                <p class="text-sm opacity-90 mb-1">Total Spent</p>
                 <p class="text-4xl font-bold">$<%= monthlyTotal.toFixed(2) %></p>
-                <p class="text-sm opacity-75 mt-2"><%= expenses.length %> transaction<%= expenses.length !== 1 ? 's' : '' %></p>
             </div>
         </div>
 
