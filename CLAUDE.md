@@ -2,11 +2,25 @@
 
 ## Project Overview
 
-This is a simple expense tracking CRUD (Create, Read, Update, Delete) application built with Express.js and MongoDB/Mongoose. The application allows users to manage their expenses by adding, viewing, editing, and deleting expense records.
+This is a mobile-first Progressive Web App (PWA) for expense tracking with advanced categorization and analytics. Built with Express.js and MongoDB/Mongoose, the application allows users to manage their expenses with Goal/Need/Want (GNW) tagging, category-based tracking, and visual analytics.
 
 **Repository**: Imdni8/Expense_tracker_CRUD
 **Main Entry Point**: `index.js`
 **Port**: Configured via `process.env.PORT` (default: 3000)
+
+## Project Vision & Goals
+
+### Core Features
+1. **GNW Tagging System**: Every expense tagged as Goal, Need, or Want for intentional spending tracking
+2. **Category-Based Tracking**: Optional categorization (Groceries, Transport, Entertainment, etc.) with "Untagged" fallback
+3. **Visual Analytics**: Monthly spending breakdown by category and GNW with charts
+4. **Mobile-First PWA**: Installable app with offline capability and native app feel
+5. **Bottom Navigation**: Easy thumb-friendly navigation between Transactions, Add Expense, and Analytics
+
+### Future Enhancements
+- Multi-user authentication and isolated user data
+- Amortization feature for spreading long-term expenses over months
+- Budget tracking and alerts
 
 ## Technology Stack
 
@@ -14,10 +28,15 @@ This is a simple expense tracking CRUD (Create, Read, Update, Delete) applicatio
 - **Framework**: Express.js 4.18.2
 - **Database**: MongoDB via Mongoose 8.0.3
 - **Template Engine**: EJS 3.1.9
+- **Frontend**:
+  - Tailwind CSS (utility-first mobile-first styling)
+  - Alpine.js (lightweight JavaScript for interactivity)
+  - Chart.js (data visualization for analytics)
 - **Key Middleware**:
   - `method-override`: Enables HTTP methods like PUT/PATCH/DELETE via query string
   - `dotenv`: Environment variable management
 - **Dev Tools**: Nodemon 3.0.2 (for development auto-reload)
+- **PWA**: Service Worker, Web App Manifest
 
 ## Project Structure
 
@@ -50,12 +69,36 @@ Expense_tracker_CRUD/
   expenseDate: {
     type: Date,
     required: true
+  },
+  category: {
+    type: String,
+    required: false,
+    enum: [
+      'Groceries', 'Transport', 'Entertainment', 'Bills & Utilities',
+      'Shopping', 'Food & Dining', 'Health & Fitness', 'Home & Garden',
+      'Travel', 'Education', 'Work', 'Gifts', 'Subscriptions', 'Other', null
+    ]
+  },
+  gnw: {
+    type: String,
+    required: true,
+    enum: ['Goal', 'Need', 'Want'],
+    default: 'Need'
+  },
+  description: {
+    type: String,
+    required: false
   }
 }
 ```
 
-**Model Location**: `Mongoose_models/Expense.js:3-13`
+**Model Location**: `Mongoose_models/Expense.js:3-44`
 **Collection Name**: `expenses` (auto-pluralized by Mongoose)
+
+**Field Notes**:
+- `category`: Optional categorization. If not provided, will show as "Untagged" in UI
+- `gnw`: Required GNW tagging (Goal/Need/Want) for intentional spending tracking
+- `description`: Optional text notes about the expense
 
 ## Routes and API Endpoints
 
@@ -361,9 +404,174 @@ RENDER_URL=https://your-app-name.onrender.com
 - **No Authentication**: Anyone can view/edit all expenses (single-user assumed)
 - **Date Handling**: Uses locale string formatting in views
 - **Validation**: Minimal validation (only schema-level in Mongoose)
-- **Styling**: Basic HTML, no CSS framework currently applied
+- **Styling**: Modern mobile-first design with Tailwind CSS
 
 ---
 
-**Last Updated**: 2025-11-17
-**Codebase Version**: Commit `71699e8` (updated ejs templates with render_url)
+## 🚀 Implementation Plan - PWA & Feature Enhancements
+
+This project is being transformed from a basic CRUD app to a mobile-first PWA with advanced features. Implementation is divided into testable phases.
+
+### **Phase 1: Database Schema Update** ✅ COMPLETED
+**Goal:** Update expense model with new fields
+
+**Changes:**
+- ✅ Added `category` (String, optional) - 14 predefined categories
+- ✅ Added `gnw` (String, required, enum: Goal/Need/Want, default: Need)
+- ✅ Added `description` (String, optional)
+
+**Testable Output:**
+- ✅ Server starts without errors
+- ✅ Existing functionality still works
+
+---
+
+### **Phase 2: Modern UI Foundation + Bottom Navigation** 🔄 IN PROGRESS
+**Goal:** Set up Tailwind CSS, Alpine.js, create mobile-first layout with bottom nav
+
+**Changes:**
+- Install Tailwind CSS (via CDN)
+- Install Alpine.js for interactivity
+- Create base layout with bottom navigation (3 tabs: Transactions, +, Analytics)
+- Update all existing views with new layout
+- Mobile-first responsive design
+
+**Testable Output:**
+- App looks modern and mobile-friendly
+- Bottom navigation visible on all pages
+- Can navigate between pages via bottom nav
+- Works smoothly on phone screen size
+
+---
+
+### **Phase 3: Update Add/Edit Expense Forms**
+**Goal:** Add category, GNW, and description fields to forms
+
+**Changes:**
+- Update `addexpense.ejs` with new fields (category dropdown, GNW toggle, description)
+- Update `editExpense.ejs` similarly
+- Update POST/PATCH routes to handle new fields
+- Modern form styling with large touch targets
+
+**Testable Output:**
+- Can add new expense with category, GNW, description
+- Can edit expense and update all fields
+- Form looks great on mobile
+- GNW selection is clear and easy to use
+
+---
+
+### **Phase 4: Transactions Page Redesign**
+**Goal:** Modern card-based view filtered to current month
+
+**Changes:**
+- Update `expenses.ejs` → rename to `transactions.ejs`
+- Show only current month expenses (MongoDB query filter)
+- Card-based layout with amount, category badge, GNW colored badge, date
+- Month selector at top
+- Monthly total card
+
+**Testable Output:**
+- Home page shows only current month transactions
+- Each expense displayed as attractive card
+- Can see category and GNW tags clearly with colors
+- Can change month to view past expenses
+- Monthly total is visible
+
+---
+
+### **Phase 5: Analytics Page**
+**Goal:** Visual breakdown of spending by category and GNW
+
+**Changes:**
+- Create `analytics.ejs`
+- Add `GET /analytics` route with MongoDB aggregations
+- Implement Chart.js visualizations (donut chart for categories, cards for GNW)
+- Month selector (same as transactions)
+
+**Testable Output:**
+- Analytics page shows beautiful charts
+- Can see spending breakdown by category (including "Untagged")
+- Can see Goal/Need/Want breakdown with totals
+- Can switch months to see historical analytics
+- Works smoothly on mobile
+
+---
+
+### **Phase 6: PWA Setup**
+**Goal:** Make app installable as mobile app
+
+**Changes:**
+- Create `manifest.json` with app metadata
+- Add placeholder icons (192x192, 512x512)
+- Add service worker for offline capability
+- Add meta tags for PWA
+- Add "Install App" prompt
+
+**Testable Output:**
+- Can install app on phone home screen
+- App opens in standalone mode (no browser UI)
+- Works offline (at least shows cached pages)
+- Has app icon on home screen
+
+---
+
+### **Phase 7: Polish & Enhancements**
+**Goal:** Final touches for smooth UX
+
+**Changes:**
+- Loading states
+- Form validation feedback
+- Smooth transitions/animations
+- Empty states (no expenses)
+- Confirmation before delete
+- Toast notifications for actions
+
+**Testable Output:**
+- App feels polished and professional
+- All interactions have feedback
+- No jarring page transitions
+- Clear messaging for all states
+
+---
+
+## Design System
+
+### Color Scheme
+- **Goal (🎯)**: Purple/Indigo (`bg-purple-100`, `text-purple-700`, `border-purple-500`)
+- **Need (✅)**: Green (`bg-green-100`, `text-green-700`, `border-green-500`)
+- **Want (❤️)**: Pink/Rose (`bg-pink-100`, `text-pink-700`, `border-pink-500`)
+- **Untagged**: Gray (`bg-gray-100`, `text-gray-600`)
+- **Background**: Clean whites/light grays
+- **Primary Accent**: Indigo for buttons and highlights
+
+### Category Icons & Mapping
+- 🛒 Groceries
+- 🚗 Transport
+- 🎬 Entertainment
+- 💰 Bills & Utilities
+- 🛍️ Shopping
+- 🍕 Food & Dining
+- 🏥 Health & Fitness
+- 🏠 Home & Garden
+- ✈️ Travel
+- 📚 Education
+- 💼 Work
+- 🎁 Gifts
+- 📱 Subscriptions
+- 🔧 Other
+
+### Mobile-First Breakpoints
+- Mobile: 320px - 640px (primary focus)
+- Tablet: 641px - 1024px
+- Desktop: 1025px+ (enhanced layout)
+
+### Touch Target Guidelines
+- Minimum 44px height for all interactive elements
+- Adequate spacing between tap targets (8px minimum)
+- Large form inputs (minimum 48px height)
+
+---
+
+**Last Updated**: 2025-11-17 (Phase 1 Completed)
+**Active Development Branch**: `claude/run-project-verification-01P3H11d4EcctB7tk2Vp3cDj`
