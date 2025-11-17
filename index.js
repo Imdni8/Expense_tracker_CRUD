@@ -48,11 +48,34 @@ app.listen(port, () => {
 
 //------// Routes //------//
 
-//home
+//home - transactions with month filtering
 app.get("/expenses", async (req, res) => {
-    const expenses = await Expense.find()
-    // console.log(expenses)
-    res.render("expenses.ejs", { expenses })
+    // Get month and year from query params, default to current month
+    const now = new Date()
+    const selectedMonth = parseInt(req.query.month) || now.getMonth()
+    const selectedYear = parseInt(req.query.year) || now.getFullYear()
+
+    // Create date range for the selected month
+    const startDate = new Date(selectedYear, selectedMonth, 1)
+    const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59)
+
+    // Query expenses for the selected month
+    const expenses = await Expense.find({
+        expenseDate: {
+            $gte: startDate,
+            $lte: endDate
+        }
+    }).sort({ expenseDate: -1 })
+
+    // Calculate monthly total
+    const monthlyTotal = expenses.reduce((sum, expense) => sum + expense.value, 0)
+
+    res.render("expenses.ejs", {
+        expenses,
+        monthlyTotal,
+        selectedMonth,
+        selectedYear
+    })
 })
 
 //add new expense form

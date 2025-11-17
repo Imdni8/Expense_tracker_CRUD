@@ -42,6 +42,43 @@
     <!-- Main Content -->
     <main class="max-w-2xl mx-auto px-4 py-6">
 
+        <!-- Month Selector -->
+        <div class="mb-6" x-data="{
+            currentMonth: <%= selectedMonth %>,
+            currentYear: <%= selectedYear %>,
+            months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+        }">
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
+                <div class="flex gap-2">
+                    <select x-model="currentMonth"
+                            @change="window.location.href = '<%= baseURL %>/expenses?month=' + currentMonth + '&year=' + currentYear"
+                            class="flex-1 px-4 py-3 text-base border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-0 bg-white">
+                        <option x-for="(month, index) in months" :key="index" :value="index" x-text="month" :selected="index === currentMonth"></option>
+                    </select>
+                    <select x-model="currentYear"
+                            @change="window.location.href = '<%= baseURL %>/expenses?month=' + currentMonth + '&year=' + currentYear"
+                            class="w-28 px-4 py-3 text-base border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-0 bg-white">
+                        <%
+                        const currentYear = new Date().getFullYear();
+                        for (let y = currentYear; y >= currentYear - 5; y--) {
+                        %>
+                            <option value="<%= y %>" <%= y === selectedYear ? 'selected' : '' %>><%= y %></option>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Total Card -->
+        <div class="mb-6">
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
+                <p class="text-sm opacity-90 mb-1">Total for <%= ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][selectedMonth] %> <%= selectedYear %></p>
+                <p class="text-4xl font-bold">$<%= monthlyTotal.toFixed(2) %></p>
+                <p class="text-sm opacity-75 mt-2"><%= expenses.length %> transaction<%= expenses.length !== 1 ? 's' : '' %></p>
+            </div>
+        </div>
+
         <% if (expenses && expenses.length > 0) { %>
             <!-- Expense List -->
             <div class="space-y-3">
@@ -111,7 +148,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No expenses yet</h3>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No expenses this month</h3>
                 <p class="text-gray-500 mb-6">Start tracking your spending by adding your first expense</p>
                 <a href="<%= baseURL %>/addexpense"
                    class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 active:scale-95">
