@@ -215,6 +215,41 @@
 
                 console.log('✓ Chart.js loaded successfully, version:', Chart.version);
 
+                // Check if treemap plugin is available
+                console.log('Checking treemap plugin availability...');
+                console.log('TreemapController available?', typeof TreemapController !== 'undefined');
+                console.log('TreemapElement available?', typeof TreemapElement !== 'undefined');
+                console.log('window.TreemapController?', typeof window.TreemapController);
+                console.log('window.TreemapElement?', typeof window.TreemapElement);
+
+                // Check what's available in window object related to treemap
+                const treemapKeys = Object.keys(window).filter(key => key.toLowerCase().includes('treemap'));
+                console.log('Keys in window containing "treemap":', treemapKeys);
+
+                // Try to register treemap plugin if available
+                if (typeof TreemapController !== 'undefined' && typeof TreemapElement !== 'undefined') {
+                    try {
+                        Chart.register(TreemapController, TreemapElement);
+                        console.log('✓ Treemap plugin registered manually');
+                    } catch (e) {
+                        console.log('Note: Treemap plugin registration attempted:', e.message);
+                    }
+                } else {
+                    console.warn('⚠ Treemap plugin classes not found in global scope');
+                    console.log('Attempting alternative registration methods...');
+
+                    // Try alternative export names
+                    if (window['chartjs-chart-treemap']) {
+                        console.log('Found chartjs-chart-treemap in window');
+                        try {
+                            Chart.register(window['chartjs-chart-treemap']);
+                            console.log('✓ Registered via window["chartjs-chart-treemap"]');
+                        } catch (e) {
+                            console.error('Failed to register:', e.message);
+                        }
+                    }
+                }
+
                 // GNW Treemap Chart
                 console.log('\n--- Starting GNW Treemap Creation ---');
                 const gnwCtx = document.getElementById('gnwTreemapChart');
