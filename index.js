@@ -140,7 +140,75 @@ app.delete("/expenses/:id", async (req, res) => {
     res.redirect("/expenses")
 })
 
-//analytics page
-app.get("/analytics", (req, res) => {
-    res.render("analytics.ejs")
+//analytics page with data aggregations
+app.get("/analytics", async (req, res) => {
+    // Get month and year from query params, default to current month
+    const now = new Date()
+    const selectedMonth = parseInt(req.query.month) || now.getMonth()
+    const selectedYear = parseInt(req.query.year) || now.getFullYear()
+
+    // Create date range for the selected month
+    const startDate = new Date(selectedYear, selectedMonth, 1)
+    const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59)
+
+    // Get all expenses for the month
+    const expenses = await Expense.find({
+        expenseDate: {
+            $gte: startDate,
+            $lte: endDate
+        }
+    })
+
+    // Calculate monthly total
+    const monthlyTotal = expenses.reduce((sum, expense) => sum + expense.value, 0)
+
+    // Aggregate by category
+    const categoryBreakdown = await Expense.aggregate([
+        {
+            $match: {
+                expenseDate: { $gte: startDate, $lte: endDate }
+            }
+        },
+        {
+            $group: {
+                _id: { $ifNull: ["$category", "Untagged"] },
+                total: { $sum: "$value" },
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { total: -1 }
+        }
+    ])
+
+    // Aggregate by GNW
+    const gnwBreakdown = await Expense.aggregate([
+        {
+            $match: {
+                expenseDate: { $gte: startDate, $lte: endDate }
+            }
+        },
+        {
+            $group: {
+                _id: "$gnw",
+                total: { $sum: "$value" },
+                count: { $sum: 1 }
+            }
+        }
+    ])
+
+    // Convert GNW array to object for easier access
+    const gnwData = {
+        Goal: gnwBreakdown.find(g => g._id === 'Goal') || { total: 0, count: 0 },
+        Need: gnwBreakdown.find(g => g._id === 'Need') || { total: 0, count: 0 },
+        Want: gnwBreakdown.find(g => g._id === 'Want') || { total: 0, count: 0 }
+    }
+
+    res.render("analytics.ejs", {
+        monthlyTotal,
+        selectedMonth,
+        selectedYear,
+        categoryBreakdown,
+        gnwData
+    })
 })
