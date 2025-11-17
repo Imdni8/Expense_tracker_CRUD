@@ -19,6 +19,9 @@ app.use(express.urlencoded({ extended: true }))
 //method overriding using string query
 app.use(methodOverride('_method'))
 
+//serve static files (PWA assets)
+app.use(express.static(path.join(__dirname, 'public')))
+
 //mongo atlas link
 const dburl = process.env.db_URL
 //"mongodb://localhost/expenseApp"
@@ -140,18 +143,31 @@ app.delete("/expenses/:id", async (req, res) => {
     res.redirect("/expenses")
 })
 
-//analytics page with data aggregations
+//analytics page with data aggregations and custom date range
 app.get("/analytics", async (req, res) => {
-    // Get month and year from query params, default to current month
     const now = new Date()
-    const selectedMonth = parseInt(req.query.month) || now.getMonth()
-    const selectedYear = parseInt(req.query.year) || now.getFullYear()
 
-    // Create date range for the selected month
-    const startDate = new Date(selectedYear, selectedMonth, 1)
-    const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59)
+    // Get custom date range from query params or default to current month
+    let startDate, endDate
 
-    // Get all expenses for the month
+    if (req.query.startDate && req.query.endDate) {
+        // Custom date range provided
+        startDate = new Date(req.query.startDate)
+        startDate.setHours(0, 0, 0, 0)
+
+        endDate = new Date(req.query.endDate)
+        endDate.setHours(23, 59, 59, 999)
+    } else {
+        // Default to current month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+    }
+
+    // Format dates for display and form population
+    const startDateStr = startDate.toISOString().split('T')[0]
+    const endDateStr = endDate.toISOString().split('T')[0]
+
+    // Get all expenses for the date range
     const expenses = await Expense.find({
         expenseDate: {
             $gte: startDate,
@@ -159,7 +175,7 @@ app.get("/analytics", async (req, res) => {
         }
     })
 
-    // Calculate monthly total
+    // Calculate total
     const monthlyTotal = expenses.reduce((sum, expense) => sum + expense.value, 0)
 
     // Aggregate by category
@@ -206,9 +222,9 @@ app.get("/analytics", async (req, res) => {
 
     res.render("analytics.ejs", {
         monthlyTotal,
-        selectedMonth,
-        selectedYear,
         categoryBreakdown,
-        gnwData
+        gnwData,
+        startDateStr,
+        endDateStr
     })
 })

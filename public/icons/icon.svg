@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="#4F46E5"/>
+
+  <!-- Wallet Icon -->
+  <g transform="translate(106, 106)">
+    <!-- Wallet body -->
+    <rect x="20" y="80" width="260" height="180" rx="20" fill="#FFFFFF" opacity="0.95"/>
+
+    <!-- Wallet flap -->
+    <path d="M40 80 L40 40 C40 28 48 20 60 20 L240 20 C252 20 260 28 260 40 L260 80" fill="#E0E7FF"/>
+
+    <!-- Card slot -->
+    <rect x="50" y="110" width="200" height="30" rx="8" fill="#818CF8"/>
+
+    <!-- Dollar sign -->
+    <g transform="translate(135, 185)">
+      <path d="M0 -35 L0 35 M-15 -25 L15 -25 C20 -25 25 -20 25 -15 C25 -10 20 -5 15 -5 L-15 -5 M-15 5 L15 5 C20 5 25 10 25 15 C25 20 20 25 15 25 L-15 25"
+            stroke="#4F46E5" stroke-width="8" stroke-linecap="round" fill="none"/>
+    </g>
+  </g>
+</svg>

@@ -1,13 +1,16 @@
 {
   "name": "mongoose_express_crud",
   "version": "1.0.0",
-  "description": "",
+  "description": "Mobile-first PWA expense tracker with GNW categorization",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "Devstart": "nodemon index.js",
     "start": "node index.js"
   },
-  "keywords": [],
+  "keywords": ["expense-tracker", "pwa", "mongodb", "express"],
   "author": "",
   "license": "ISC",
   "dependencies": {
