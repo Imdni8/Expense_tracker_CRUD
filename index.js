@@ -109,3 +109,8 @@ app.delete("/expenses/:id", async (req, res) => {
     await Expense.findByIdAndDelete(id)
     res.redirect("/expenses")
 })
+
+//analytics page
+app.get("/analytics", (req, res) => {
+    res.render("analytics.ejs")
+})
