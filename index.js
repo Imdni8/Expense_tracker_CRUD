@@ -19,6 +19,9 @@ app.use(express.urlencoded({ extended: true }))
 //method overriding using string query
 app.use(methodOverride('_method'))
 
+//serve static files (PWA assets)
+app.use(express.static(path.join(__dirname, 'public')))
+
 //mongo atlas link
 const dburl = process.env.db_URL
 //"mongodb://localhost/expenseApp"
