@@ -13,7 +13,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         /* Custom styles for smooth mobile experience */
@@ -38,55 +38,47 @@
     <!-- Main Content -->
     <main class="max-w-2xl mx-auto px-4 py-6">
 
-        <!-- Month Navigation Card -->
-        <div class="mb-6">
+        <!-- Date Range Selector Card -->
+        <div class="mb-6" x-data="{
+            showPicker: false,
+            startDate: '<%= startDateStr %>',
+            endDate: '<%= endDateStr %>'
+        }">
             <div class="bg-white rounded-lg shadow-sm p-4">
-                <div class="flex items-center justify-between">
-                    <!-- Previous Month Button -->
-                    <%
-                    const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
-                    const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
-                    %>
-                    <a href="<%= baseURL %>/analytics?month=<%= prevMonth %>&year=<%= prevYear %>"
-                       class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-lg active:scale-95">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                    </a>
-
-                    <!-- Current Month Display -->
-                    <div class="text-center">
-                        <p class="text-lg font-bold text-gray-900">
-                            <%= ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][selectedMonth] %> <%= selectedYear %>
-                        </p>
-                    </div>
-
-                    <!-- Next Month Button -->
-                    <%
-                    const nextMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
-                    const nextYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
-                    const now = new Date();
-                    const isFutureMonth = selectedYear > now.getFullYear() || (selectedYear === now.getFullYear() && selectedMonth > now.getMonth());
-                    %>
-                    <% if (!isFutureMonth) { %>
-                        <a href="<%= baseURL %>/analytics?month=<%= nextMonth %>&year=<%= nextYear %>"
-                           class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-lg active:scale-95">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </a>
-                    <% } else { %>
-                        <div class="p-2 w-10"></div>
-                    <% } %>
+                <!-- Selected Date Range Display -->
+                <div class="text-center mb-3">
+                    <p class="text-xs text-gray-500 mb-1">Analytics Period</p>
+                    <p class="text-base font-bold text-gray-900">
+                        <%= new Date(startDateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                        -
+                        <%= new Date(endDateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                    </p>
                 </div>
-            </div>
-        </div>
 
-        <!-- Monthly Total Card -->
-        <div class="mb-6">
-            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
-                <p class="text-sm opacity-90 mb-1">Total Spent</p>
-                <p class="text-4xl font-bold">$<%= monthlyTotal.toFixed(2) %></p>
+                <!-- Toggle Button -->
+                <button @click="showPicker = !showPicker"
+                        class="w-full px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 active:scale-95">
+                    <span x-show="!showPicker">Change Date Range</span>
+                    <span x-show="showPicker">Hide Date Range</span>
+                </button>
+
+                <!-- Date Picker Form (Collapsible) -->
+                <form x-show="showPicker" x-transition method="GET" action="<%= baseURL %>/analytics" class="mt-4 space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">From</label>
+                        <input type="date" name="startDate" x-model="startDate" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">To</label>
+                        <input type="date" name="endDate" x-model="endDate" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <button type="submit"
+                            class="w-full px-4 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 active:scale-95">
+                        Apply Date Range
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -169,8 +161,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                           d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No data for this month</h3>
-                <p class="text-gray-500 mb-6">Start adding expenses to see your analytics</p>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No data for this period</h3>
+                <p class="text-gray-500 mb-6">Try a different date range or add expenses</p>
                 <a href="<%= baseURL %>/addexpense"
                    class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 active:scale-95">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,8 +178,19 @@
     <!-- Chart.js Initialization Script -->
     <% if (monthlyTotal > 0 && categoryBreakdown && categoryBreakdown.length > 0) { %>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Wait for both DOM and Chart.js to load
+        window.addEventListener('load', function() {
+            // Double-check Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js failed to load');
+                return;
+            }
+
             const ctx = document.getElementById('categoryChart');
+            if (!ctx) {
+                console.error('Canvas element not found');
+                return;
+            }
 
             // Prepare data for chart
             const labels = <%= JSON.stringify(categoryBreakdown.map(c => c._id)) %>;
@@ -200,44 +203,49 @@
                 '#A855F7', '#06B6D4', '#F43F5E', '#22D3EE', '#94A3B8'
             ];
 
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: colors.slice(0, data.length),
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 15,
-                                font: {
-                                    size: 12
-                                },
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed || 0;
-                                    const percentage = ((value / <%= monthlyTotal %>) * 100).toFixed(1);
-                                    return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
+            // Create the chart
+            try {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors.slice(0, data.length),
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    },
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const percentage = ((value / <%= monthlyTotal %>) * 100).toFixed(1);
+                                        return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Error creating chart:', error);
+            }
         });
     </script>
     <% } %>
