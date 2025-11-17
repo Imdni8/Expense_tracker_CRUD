@@ -191,9 +191,9 @@
     <script>
         console.log('=== CHART INITIALIZATION DEBUG START ===');
         console.log('monthlyTotal:', <%= monthlyTotal %>);
-        console.log('gnwData:', <%= JSON.stringify(gnwData) %>);
+        console.log('gnwData:', <%- JSON.stringify(gnwData) %>);
         <% if (categoryBreakdown && categoryBreakdown.length > 0) { %>
-        console.log('categoryBreakdown:', <%= JSON.stringify(categoryBreakdown) %>);
+        console.log('categoryBreakdown:', <%- JSON.stringify(categoryBreakdown) %>);
         <% } else { %>
         console.log('categoryBreakdown: EMPTY or NULL');
         <% } %>
@@ -313,8 +313,8 @@
 
                 if (categoryCtx) {
                     try {
-                        const labels = <%= JSON.stringify(categoryBreakdown.map(c => c._id)) %>;
-                        const data = <%= JSON.stringify(categoryBreakdown.map(c => c.total)) %>;
+                        const labels = <%- JSON.stringify(categoryBreakdown.map(c => c._id)) %>;
+                        const data = <%- JSON.stringify(categoryBreakdown.map(c => c.total)) %>;
 
                         console.log('Category labels:', labels);
                         console.log('Category data:', data);
