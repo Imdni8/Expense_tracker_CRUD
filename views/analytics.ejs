@@ -9,11 +9,14 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Chart.js CDN - Load before Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+
+    <!-- Chart.js Treemap Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/dist/chartjs-chart-treemap.umd.js"></script>
+
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         /* Custom styles for smooth mobile experience */
@@ -125,6 +128,14 @@
                 </div>
             </div>
 
+            <!-- GNW Treemap Chart -->
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-3">Spending by Type (Treemap)</h2>
+                <div class="bg-white rounded-lg shadow-sm p-5">
+                    <canvas id="gnwTreemapChart" style="height: 250px;"></canvas>
+                </div>
+            </div>
+
             <!-- Category Breakdown -->
             <% if (categoryBreakdown && categoryBreakdown.length > 0) { %>
                 <div class="mb-6">
@@ -176,77 +187,169 @@
     </main>
 
     <!-- Chart.js Initialization Script -->
-    <% if (monthlyTotal > 0 && categoryBreakdown && categoryBreakdown.length > 0) { %>
+    <% if (monthlyTotal > 0) { %>
     <script>
-        // Wait for both DOM and Chart.js to load
-        window.addEventListener('load', function() {
-            // Double-check Chart.js is available
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js failed to load');
-                return;
-            }
+        // Initialize charts immediately after DOM loads
+        (function() {
+            // Wait for Chart.js to be available
+            function initCharts() {
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js not loaded');
+                    setTimeout(initCharts, 100);
+                    return;
+                }
 
-            const ctx = document.getElementById('categoryChart');
-            if (!ctx) {
-                console.error('Canvas element not found');
-                return;
-            }
+                console.log('Chart.js loaded successfully, version:', Chart.version);
 
-            // Prepare data for chart
-            const labels = <%= JSON.stringify(categoryBreakdown.map(c => c._id)) %>;
-            const data = <%= JSON.stringify(categoryBreakdown.map(c => c.total)) %>;
-
-            // Generate colors for each category
-            const colors = [
-                '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6',
-                '#EF4444', '#14B8A6', '#F97316', '#6366F1', '#84CC16',
-                '#A855F7', '#06B6D4', '#F43F5E', '#22D3EE', '#94A3B8'
-            ];
-
-            // Create the chart
-            try {
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colors.slice(0, data.length),
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    padding: 15,
-                                    font: {
-                                        size: 12
-                                    },
-                                    usePointStyle: true
-                                }
+                // GNW Treemap Chart
+                const gnwCtx = document.getElementById('gnwTreemapChart');
+                if (gnwCtx) {
+                    try {
+                        const gnwData = [
+                            {
+                                label: '🎯 Goal',
+                                value: <%= gnwData.Goal.total %>,
+                                color: '#8B5CF6'
                             },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.parsed || 0;
-                                        const percentage = ((value / <%= monthlyTotal %>) * 100).toFixed(1);
-                                        return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
+                            {
+                                label: '✅ Need',
+                                value: <%= gnwData.Need.total %>,
+                                color: '#10B981'
+                            },
+                            {
+                                label: '❤️ Want',
+                                value: <%= gnwData.Want.total %>,
+                                color: '#EC4899'
+                            }
+                        ].filter(item => item.value > 0);
+
+                        new Chart(gnwCtx, {
+                            type: 'treemap',
+                            data: {
+                                datasets: [{
+                                    tree: gnwData,
+                                    key: 'value',
+                                    groups: ['label'],
+                                    backgroundColor: function(ctx) {
+                                        if (ctx.type !== 'data') return 'transparent';
+                                        return ctx.raw._data.color;
+                                    },
+                                    borderWidth: 2,
+                                    borderColor: '#ffffff',
+                                    spacing: 2,
+                                    labels: {
+                                        display: true,
+                                        formatter: function(ctx) {
+                                            const item = ctx.raw._data;
+                                            const total = <%= monthlyTotal %>;
+                                            const percentage = ((item.value / total) * 100).toFixed(0);
+                                            return [item.label, '$' + item.value.toFixed(2), percentage + '%'];
+                                        },
+                                        color: '#ffffff',
+                                        font: {
+                                            size: 14,
+                                            weight: 'bold'
+                                        }
+                                    }
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            title: function(items) {
+                                                return items[0].raw._data.label;
+                                            },
+                                            label: function(item) {
+                                                const value = item.raw.v;
+                                                const total = <%= monthlyTotal %>;
+                                                const percentage = ((value / total) * 100).toFixed(1);
+                                                return '$' + value.toFixed(2) + ' (' + percentage + '%)';
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
+                        });
+                        console.log('GNW Treemap created successfully');
+                    } catch (error) {
+                        console.error('Error creating GNW treemap:', error);
                     }
-                });
-            } catch (error) {
-                console.error('Error creating chart:', error);
+                }
+
+                // Category Donut Chart
+                <% if (categoryBreakdown && categoryBreakdown.length > 0) { %>
+                const categoryCtx = document.getElementById('categoryChart');
+                if (categoryCtx) {
+                    try {
+                        const labels = <%= JSON.stringify(categoryBreakdown.map(c => c._id)) %>;
+                        const data = <%= JSON.stringify(categoryBreakdown.map(c => c.total)) %>;
+
+                        const colors = [
+                            '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6',
+                            '#EF4444', '#14B8A6', '#F97316', '#6366F1', '#84CC16',
+                            '#A855F7', '#06B6D4', '#F43F5E', '#22D3EE', '#94A3B8'
+                        ];
+
+                        new Chart(categoryCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    data: data,
+                                    backgroundColor: colors.slice(0, data.length),
+                                    borderWidth: 2,
+                                    borderColor: '#ffffff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            padding: 15,
+                                            font: {
+                                                size: 12
+                                            },
+                                            usePointStyle: true
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const label = context.label || '';
+                                                const value = context.parsed || 0;
+                                                const total = <%= monthlyTotal %>;
+                                                const percentage = ((value / total) * 100).toFixed(1);
+                                                return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        console.log('Category donut chart created successfully');
+                    } catch (error) {
+                        console.error('Error creating category chart:', error);
+                    }
+                }
+                <% } %>
             }
-        });
+
+            // Try to initialize immediately, or wait for DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCharts);
+            } else {
+                initCharts();
+            }
+        })();
     </script>
     <% } %>
 
